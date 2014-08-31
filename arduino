@@ -15,12 +15,12 @@ done
 
 set_flags -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
 
-arduino_dirs="hardware lib reference"
+arduino_dirs="hardware/arduino/avr hardware/arduino/sam hardware/tools lib reference tools"
 atexit()
 {
     local rc=$?
     for dir in $arduino_dirs; do
-        test -L $dir && rm -f $dir
+        test -e $dir -a -L $dir && rm -f $dir
     done
     exit $rc
 }
@@ -28,7 +28,11 @@ atexit()
 trap atexit EXIT TERM
 for dir in $arduino_dirs; do
     if [ ! -e $dir -o -L $dir ]; then
-        ln -fs "$APPDIR/$dir"
+        parent_dir="$(dirname $dir)"
+        source_path="$APPDIR/$dir"
+        test "$parent_dir" == "" -o "$parent_dir" == "." ||
+            source_path="$(echo "$parent_dir" | sed -e 's|[^/]*|..|g')/$source_path"
+        ln -fs "$source_path" "$parent_dir"
     fi
 done
 
