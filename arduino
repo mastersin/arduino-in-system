@@ -2,14 +2,18 @@
 
 . /usr/share/java-utils/java-functions
 
+if [ "$APPDIR" == "" ]; then
+    APPDIR=/usr/share/arduino
+fi
+
 MAIN_CLASS=processing.app.Base
 
 set_classpath ecj jna RXTXcomm
-for lib in /usr/share/arduino/*.jar; do
+for lib in "$APPDIR"/{,lib}/*.jar; do
     CLASSPATH="$CLASSPATH:$lib"
 done
 
 set_flags -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
 
-cd /usr/share/arduino
+cd "$APPDIR"
 run "$@"
