@@ -16,10 +16,20 @@ done
 set_flags -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
 
 arduino_dirs="hardware lib reference"
+atexit()
+{
+    local rc=$?
+    for dir in $arduino_dirs; do
+        test -L $dir && rm -f $dir
+    done
+    exit $rc
+}
+
+trap atexit EXIT TERM
 for dir in $arduino_dirs; do
     if [ ! -e $dir -o -L $dir ]; then
         ln -fs "$APPDIR/$dir"
     fi
 done
 
-run "$@"
+(run "$@")
