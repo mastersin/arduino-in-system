@@ -20,19 +20,25 @@ atexit()
 {
     local rc=$?
     for dir in $arduino_dirs; do
-        test -e $dir -a -L $dir && rm -f $dir
+        test -L $dir && rm -f $dir
     done
     exit $rc
 }
 
 trap atexit EXIT TERM
 for dir in $arduino_dirs; do
+
+    source_path="$APPDIR/$dir"
+    source_name=
+
+    parent_dir="$(dirname $dir)"
+    link_path="$source_path"
+
     if [ ! -e $dir -o -L $dir ]; then
-        parent_dir="$(dirname $dir)"
-        source_path="$APPDIR/$dir"
-        test "$parent_dir" == "" -o "$parent_dir" == "." ||
-            source_path="$(echo "$parent_dir" | sed -e 's|[^/]*|..|g')/$source_path"
-        ln -fs "$source_path" "$parent_dir"
+        test "$parent_dir" == "" -o "$parent_dir" == "." || echo "$source_path" | grep -q '^/' ||
+            link_path="$(echo "$parent_dir" | sed -e 's|[^/]*|..|g')/$source_path"
+        test -e "$source_path" &&
+            ln -fs "$link_path" "$parent_dir/$source_name"
     fi
 done
 
